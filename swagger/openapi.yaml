@@ -1,0 +1,144 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: Lesson Booking Project
+  description: An Api to book lessons
+paths:
+  /v1/schedule:
+    get:
+      summary: Fetches the schedule for the current week
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          description: The date that the week being fetched starts on. If no date is given fetch the current week
+      responses:
+        '200':
+          description: 'Successfully Fetched data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetScheduleResponseV1'
+  /v1/bookingrequest:
+    post:
+      summary: Creates a booking in the schedule
+      requestBody:
+        $ref: '#/components/schemas/CreateBookingRequestV1'
+      responses:
+        201:
+          description: 'Successful created lesson Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBookingResponseV1'
+
+components:
+  schemas:
+    GetScheduleResponseV1:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date
+        schedule:
+          type: object
+          properties:
+            monday:
+              $ref: '#/components/schemas/DayScheduleV1'
+            tuesday:
+              $ref: '#/components/schemas/DayScheduleV1'
+            wednesday:
+              $ref: '#/components/schemas/DayScheduleV1'
+            thursday:
+              $ref: '#/components/schemas/DayScheduleV1'
+            friday:
+              $ref: '#/components/schemas/DayScheduleV1'
+            saturday:
+              $ref: '#/components/schemas/DayScheduleV1'
+            sunday:
+              $ref: '#/components/schemas/DayScheduleV1'
+      required:
+        - startDate
+        - schedule
+
+    DayScheduleV1:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonV1'
+      required:
+        - date
+
+    LessonV1:
+      type: object
+      properties:
+        student:
+          $ref: '#/components/schemas/StudentV1'
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+      required:
+        - student
+        - startDate
+        - endDate
+
+    StudentV1:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        pfp:
+          type: string
+          format: url
+        lessonCredits:
+          type: integer
+          minimum: 0
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - lessonCredits
+
+    CreateBookingRequestV1:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        student:
+          $ref: '#/components/schemas/StudentV1'
+        fee:
+          type: number
+          description: the fee for the lesson in cents. (euro)
+          format: integer
+
+    CreateBookingResponseV1:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time

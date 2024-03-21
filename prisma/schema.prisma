@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_CONNECTION_STRING")
+}
+
+enum Weekday {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+  sunday
+}
+
+model WeekSchedule {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  startDate String        @unique
+  schedule  DaySchedule[]
+}
+
+model DaySchedule {
+  id      String       @id @default(auto()) @map("_id") @db.ObjectId
+  weekday Weekday
+  date    String       @unique
+  lessons Lesson[]
+  // relation fields
+  week    WeekSchedule @relation(fields: [weekId], references: [id])
+  weekId  String       @db.ObjectId
+}
+
+model Lesson {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  student     User[]      @relation(fields: [studentIds], references: [id])
+  studentIds  String[]    @db.ObjectId
+  startTime   DateTime
+  endTime     DateTime
+  // relation fields
+  DaySchedule DaySchedule @relation(fields: [DayId], references: [id])
+  DayId       String      @db.ObjectId
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName     String
+  lastName      String
+  email         String   @unique
+  role          Role     @default(STUDENT)
+  lessonCredits Int?     @default(0)
+  Lessons       Lesson[] @relation(fields: [LessonIds], references: [id])
+  LessonIds     String[] @db.ObjectId
+}

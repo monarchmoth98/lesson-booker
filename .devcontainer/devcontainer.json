@@ -1,0 +1,24 @@
+{
+  "name": "Lesson Booking Project",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "dbaeumer.vscode-eslint",
+        "Orta.vscode-jest",
+        "firsttris.vscode-jest-runner",
+        "vivaxy.vscode-conventional-commits",
+        "PKief.material-icon-theme",
+        "shardulm94.trailing-spaces",
+        "Prisma.prisma"
+      ]
+    }
+  },
+  "build": {
+    "dockerfile": "DockerFile"
+  },
+  "forwardPorts": [3000]
+}
