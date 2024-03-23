@@ -3,10 +3,19 @@ info:
   version: 1.0.0
   title: Lesson Booking Project
   description: An Api to book lessons
+
+tags:
+  - name: Calendar
+    description: Operations related to the calendar.
+  - name: Lesson
+    description: Operations related to Lessons
+
 paths:
-  /v1/schedule:
+  /v1/calendar/:
     get:
       summary: Fetches the schedule for the current week
+      tags:
+        - Calendar
       parameters:
         - in: query
           name: startDate
@@ -20,125 +29,410 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetScheduleResponseV1'
-  /v1/bookingrequest:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponseV1'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GetCalendarResponseV1'
+
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorV1'
+        '401':
+          description: 'Unauthorised To access this data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorV1'
+        '404':
+          description: 'Not Found Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorV1'
+
+  /v1/calendar/lesson:
     post:
       summary: Creates a booking in the schedule
+      tags:
+        - Calendar
+        - Lesson
       requestBody:
-        $ref: '#/components/schemas/CreateBookingRequestV1'
+        $ref: '#/components/requestBodies/CreateLessonRequestV1'
       responses:
-        201:
+        '201':
           description: 'Successful created lesson Request'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateBookingResponseV1'
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponseV1'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CreateLessonResponseV1'
+
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorV1'
+        '401':
+          description: 'Unauthorised To access this data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorV1'
+        '404':
+          description: Calendar not found, can\'t add lesson to non-existent calendar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorV1'
+
+  /v1/calendar/lesson/{lesson-id}:
+    get:
+      summary: Get information about a lesson
+      tags:
+        - Lesson
+      parameters:
+        - in: path
+          name: lesson-id
+          required: true
+          schema:
+            type: string
+          description: ID of the lesson to retrieve
+      responses:
+        '200':
+          description: 'Successfully Fetched Lesson'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponseV1'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GetCalendarResponseV1'
+
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorV1'
+        '401':
+          description: 'Unauthorised To access this data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorV1'
+        '404':
+          description: 'Not Found Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorV1'
+
+    put:
+      summary: Edit information about a lesson
+      tags:
+        - Lesson
+      parameters:
+        - in: path
+          name: lesson-id
+          required: true
+          schema:
+            type: string
+          description: ID of the lesson to update
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateLessonRequestV1'
+      responses:
+        '200':
+          description: 'Successfully Updated Lesson'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponseV1'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LessonV1'
+
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorV1'
+        '401':
+          description: 'Unauthorised To access this data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorV1'
+        '404':
+          description: 'Not Found Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorV1'
+
+    delete:
+      summary: Delete a lesson
+      tags:
+        - Lesson
+      parameters:
+        - in: path
+          name: lesson-id
+          required: true
+          schema:
+            type: string
+          description: ID of the lesson to delete
+      responses:
+        '204':
+          description: 'Successfully Deleted Lesson'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorV1'
+        '401':
+          description: 'Unauthorised To access this data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedErrorV1'
+        '404':
+          description: 'Not Found Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorV1'
 
 components:
+  # Request Related things
+  requestBodies:
+    CreateLessonRequestV1:
+      content:
+        application/json:
+          schema:
+            properties:
+              student:
+                type: object # TODO: add User
+              startTime:
+                $ref: '#/components/schemas/LessonStartTimeEnumV1'
+              rate:
+                type: number
+                minimum: 2300
+                default: 2300
+                description: The amount to be payed for the lesson in cents.
+              chineseLevel:
+                type: string
+                maximum: 200
+                description: The level of the students chinese.
+              chineseGoals:
+                type: string
+                maximum: 200
+                description: The students goals.
+              chineseTimeStudied:
+                type: string
+                maximum: 100
+                description: The length of time the student has studied chinese for.
+              lessonDuration:
+                type: number
+                description: The Number of minutes that a lesson will last.
+                default: 50
+            required:
+              - student
+              - startTime
+      required: true
+
+    UpdateLessonRequestV1:
+      content:
+        application/json:
+          schema:
+            properties:
+              startTime:
+                $ref: '#/components/schemas/LessonStartTimeEnumV1'
+              rate:
+                type: number
+                minimum: 2300
+                description: The amount to be payed for the lesson in cents.
+              lessonDuration:
+                type: number
+                description: The Number of minutes that a lesson will last.
+      required: true
+
   schemas:
-    GetScheduleResponseV1:
+    # Here are all my Response codes
+
+    SuccessResponseV1:
       type: object
       properties:
-        startDate:
+        message:
           type: string
-          format: date
-        schedule:
-          type: object
-          properties:
-            monday:
-              $ref: '#/components/schemas/DayScheduleV1'
-            tuesday:
-              $ref: '#/components/schemas/DayScheduleV1'
-            wednesday:
-              $ref: '#/components/schemas/DayScheduleV1'
-            thursday:
-              $ref: '#/components/schemas/DayScheduleV1'
-            friday:
-              $ref: '#/components/schemas/DayScheduleV1'
-            saturday:
-              $ref: '#/components/schemas/DayScheduleV1'
-            sunday:
-              $ref: '#/components/schemas/DayScheduleV1'
+      example:
+        message: 'Resource found successfully'
+
+    BadRequestErrorV1:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      example:
+        error: 'Bad Request'
+        message: 'Invalid input parameters'
+
+    UnauthorizedErrorV1:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      example:
+        error: 'Unauthorized'
+        message: 'You are not authorized to access this resource'
+
+    NotFoundErrorV1:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      example:
+        error: 'Not Found'
+        message: 'The requested resource was not found'
+
+    ###############################
+    # Response Bodies
+    ###############################
+
+    GetCalendarResponseV1:
+      type: object
+      properties:
+        weekSchedule:
+          $ref: '#/components/schemas/WeekScheduleV1'
+
+    CreateLessonResponseV1:
+      type: object
+      properties:
+        createdLesson:
+          $ref: '#/components/schemas/LessonV1'
+
+    ###############################
+    # Objects
+    ###############################
+
+    WeekScheduleV1:
+      type: object
       required:
-        - startDate
-        - schedule
+        - monday
+        - tuesday
+        - wednesday
+        - thursday
+        - friday
+        - saturday
+        - sunday
+      properties:
+        monday:
+          $ref: '#/components/schemas/DayScheduleV1'
+        tuesday:
+          $ref: '#/components/schemas/DayScheduleV1'
+        wednesday:
+          $ref: '#/components/schemas/DayScheduleV1'
+        thursday:
+          $ref: '#/components/schemas/DayScheduleV1'
+        friday:
+          $ref: '#/components/schemas/DayScheduleV1'
+        saturday:
+          $ref: '#/components/schemas/DayScheduleV1'
+        sunday:
+          $ref: '#/components/schemas/DayScheduleV1'
 
     DayScheduleV1:
       type: object
+      required:
+        - date
+        - lessons
       properties:
         date:
           type: string
           format: date
+          description: The date
         lessons:
           type: array
           items:
             $ref: '#/components/schemas/LessonV1'
-      required:
-        - date
 
     LessonV1:
       type: object
-      properties:
-        student:
-          $ref: '#/components/schemas/StudentV1'
-        startDate:
-          type: string
-          format: date-time
-        endDate:
-          type: string
-          format: date-time
       required:
+        - startTime
+        - date
         - student
-        - startDate
-        - endDate
-
-    StudentV1:
-      type: object
+        - isAccepted
       properties:
-        id:
+        startTime:
+          $ref: '#/components/schemas/LessonStartTimeEnumV1'
+        date:
           type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        email:
-          type: string
-          format: email
-        pfp:
-          type: string
-          format: url
-        lessonCredits:
-          type: integer
-          minimum: 0
-      required:
-        - id
-        - firstName
-        - lastName
-        - email
-        - lessonCredits
-
-    CreateBookingRequestV1:
-      type: object
-      properties:
-        startDate:
-          type: string
-          format: date-time
-        endDate:
-          type: string
-          format: date-time
+          format: date
+          example: '2024-08-22'
         student:
-          $ref: '#/components/schemas/StudentV1'
-        fee:
+          type: object
+        lessonDuration:
+          description: The duration of the lesson in minutes.
           type: number
-          description: the fee for the lesson in cents. (euro)
-          format: integer
+          default: 50
+        breakDuration:
+          description: The time after a lesson for the teacher to take a break, in minutes.
+          type: number
+          default: 10
+        isAccepted:
+          type: boolean
+          description: true if the lesson has been accepted by the teacher, false if the lesson is still just a proposed lesson.
 
-    CreateBookingResponseV1:
-      type: object
-      properties:
-        startDate:
-          type: string
-          format: date-time
-        endDate:
-          type: string
-          format: date-time
+    ###############################
+    # Enums
+    ###############################
+
+    LessonStartTimeEnumV1:
+      type: array
+      items:
+        type: string
+        enum:
+          - '09:00'
+          - '09:30'
+          - '10:00'
+          - '10:30'
+          - '11:00'
+          - '11:30'
+          - '12:00'
+          - '12:30'
+          - '13:00'
+          - '13:30'
+          - '14:00'
+          - '14:30'
+          - '15:00'
+          - '15:30'
+          - '16:00'
+          - '16:30'
+          - '17:00'
+          - '17:30'
+          - '18:00'
+          - '18:30'
+          - '19:00'
+          - '19:30'
+          - '20:00'
